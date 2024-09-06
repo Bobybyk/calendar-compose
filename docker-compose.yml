@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  app:
+    build: .
+    container_name: my-node-app
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://localhost:27017/calendar-core-db
+    networks:
+      - app-network
+
+  db-setup:
+    build:
+      context: ./db-repo
+      dockerfile: Dockerfile
+    container_name: mongo-setup
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://localhost:27017/calendar-core-db
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
